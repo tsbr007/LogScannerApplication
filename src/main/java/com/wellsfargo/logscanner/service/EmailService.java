@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.wellsfargo.logscanner.utils.EmailNotification;
 
@@ -14,6 +16,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final SimpleMailMessage templateMessage;
+    
+    private static final Logger logger = LoggerFactory.getLogger(LogScannerService.class);
+
 
     @Value("${email.recipient}")
     private String recipientEmail;
@@ -30,6 +35,7 @@ public class EmailService {
         message.setSubject(subject);
         message.setText(content);
         mailSender.send(message);
+        logger.info("Email Sent successfully");
     }
 
     public void sendEmailNotification(EmailNotification notification) {
