@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.wellsfargo.logscanner.model.LogEntry;
@@ -17,6 +18,9 @@ public class LogScannerService {
 
     private final EmailNotificationRepository notificationRepository;
     private final EmailService emailService;
+    
+    @Value("#{'${valid.messages}'.split(',')}")
+    private List<String> validMessages;
 
     @Autowired
     public LogScannerService(EmailNotificationRepository notificationRepository, EmailService emailService) {
@@ -42,31 +46,42 @@ public class LogScannerService {
                 if (logFile.lastModified() > System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
                     // Parse the log file and extract relevant information
                     List<LogEntry> logEntries = LogParser.parseLogFile(logFile);
+                    
+                    
+                    processLogEntries(logEntries);
 
-                    // Process the log entries and generate email content
-                    String emailContent = processLogEntries(logEntries);
-
-                    // Send email notification
-                    EmailNotification notification = new EmailNotification();
-                    notification.setSubject("Log Notification");
-                    notification.setContent(emailContent);
-                    saveNotificationAndSendEmail(notification);
+                    
                 }
             }
         }
     }
+
+	public void processLogEntries(List<LogEntry> logEntries) {
+		for(LogEntry logEntry : logEntries) {
+			if(validateLogEntry(logEntry)) {
+				EmailNotification notification = new EmailNotification();
+		        notification.setSubject(logEntry.getLogLevel()+":"+logEntry.getMessage());
+		        notification.setContent(logEntry.getLogLevel()+":"+logEntry.getMessage());
+		        saveNotificationAndSendEmail(notification);
+			}
+		}
+	}
 
     public void saveNotificationAndSendEmail(EmailNotification notification) {
         notificationRepository.save(notification);
         emailService.sendEmailNotification(notification);
     }
 
-    public String processLogEntries(List<LogEntry> logEntries) {
-        // Process the log entries to generate the email content
-        StringBuilder sb = new StringBuilder();
-        for (LogEntry logEntry : logEntries) {
-            sb.append(logEntry.getMessage()).append("\n");
-        }
-        return sb.toString();
+   
+    
+    public boolean validateLogEntry(LogEntry logEntry) {
+    	for(String message : validMessages) {
+    		if(logEntry.getMessage().contains(message)) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    	
     }
 }

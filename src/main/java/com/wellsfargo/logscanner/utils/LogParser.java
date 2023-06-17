@@ -6,6 +6,8 @@ import java.io.RandomAccessFile;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,33 +55,29 @@ public class LogParser {
 		return logEntries;
 	}
 
-	private static LogEntry parseLogEntry(String logLine) {
-		LogEntry logEntry = new LogEntry();
+	private static LogEntry parseLogEntry(String line) {
+	    try {
+	    	//Sample : [2023-06-17T09:45:12Z] INFO: Initializing ProtocolHandler
+	        // Parse the timestamp, log level, and message from the log line
+	        String timestampStr = line.substring(line.indexOf("[") + 1, line.indexOf("]"));
+	        LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DateTimeFormatter.ISO_DATE_TIME);
 
-		// Assuming log line has a timestamp and message separated by a delimiter (e.g.,
-		// "|")
-		String[] parts = logLine.split("\\|");
-		if (parts.length == 2) {
-			try {
-				// Parse the timestamp
-				long timestamp = Long.parseLong(parts[0].trim());
-				logEntry.setTimestamp(timestamp);
-			} catch (NumberFormatException e) {
-				// Handle parsing error if needed
-			}
+	        String logLevel = line.substring(line.indexOf(" ") + 1, line.indexOf(":"));
+	        String message = line.substring(line.indexOf(":") + 2); // Adding 2 to skip the ": " characters
 
-			// Set the log message
-			logEntry.setMessage(parts[1].trim());
-		} else {
-			// Handle log line format error if needed
-		}
-
-		return logEntry;
+	        // Create and return the LogEntry object
+	        return new LogEntry(timestamp, logLevel, message);
+	    } catch (Exception e) {
+	        // Error occurred while parsing the log line
+	        // You can handle the exception or log it if needed
+	        e.printStackTrace();
+	        return null; // Return null if unable to parse the log line
+	    }
 	}
 
 	private static LocalDateTime getLogEntryTimestamp(LogEntry logEntry) {
-		long timestamp = logEntry.getTimestamp();
-		Instant instant = Instant.ofEpochMilli(timestamp);
+		LocalDateTime timestamp = logEntry.getTimestamp(); 
+		Instant instant = timestamp.toInstant(ZoneOffset.UTC);
 		return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 	}
 
