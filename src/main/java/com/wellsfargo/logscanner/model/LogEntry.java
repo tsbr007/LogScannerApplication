@@ -16,6 +16,12 @@ public class LogEntry {
 		this.logLevel = logLevel;
 		this.message = message;
 	}
+    
+    public LogEntry(LocalDateTime timestamp, String message) {
+		super();
+		this.timestamp = timestamp;
+		this.message = message;
+	}
 
 
 

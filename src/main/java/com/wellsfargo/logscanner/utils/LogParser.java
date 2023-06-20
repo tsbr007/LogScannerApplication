@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import com.wellsfargo.logscanner.model.LogEntry;
 
@@ -18,7 +19,7 @@ public class LogParser {
 
 	public static List<LogEntry> parseLogFile(File logFile) {
 		List<LogEntry> logEntries = new ArrayList<>();
-		LocalDateTime currentTimeMinusOneMinute = LocalDateTime.now().minusMinutes(1);
+		LocalDateTime currentTimeMinusOneMinute = LocalDateTime.now(ZoneId.of("America/New_York")).minusSeconds(10);
 
 		try (RandomAccessFile randomAccessFile = new RandomAccessFile(logFile, "r")) {
 			long fileLength = randomAccessFile.length();
@@ -31,7 +32,7 @@ public class LogParser {
 				if (readByte == 0xA) {
 					String line = randomAccessFile.readLine();
 					if (line != null && !line.isEmpty()) {
-						LogEntry logEntry = parseLogEntry(line);
+						LogEntry logEntry = parseLogEntryFormat1(line);
 						LocalDateTime logEntryTimestamp = getLogEntryTimestamp(logEntry);
 						if (logEntryTimestamp != null && logEntryTimestamp.isAfter(currentTimeMinusOneMinute)) {
 							logEntries.add(logEntry);
@@ -55,7 +56,7 @@ public class LogParser {
 		return logEntries;
 	}
 
-	private static LogEntry parseLogEntry(String line) {
+	private static LogEntry parseLogEntryFormat2(String line) {
 	    try {
 	    	//Sample : [2023-06-17T09:45:12Z] INFO: Initializing ProtocolHandler
 	        // Parse the timestamp, log level, and message from the log line
@@ -74,6 +75,28 @@ public class LogParser {
 	        return null; // Return null if unable to parse the log line
 	    }
 	}
+	
+	private static LogEntry parseLogEntryFormat1(String line) {
+	    try {
+	        // Parse the timestamp and message from the log line
+	        String[] parts = line.split(" ", 4);
+	        String timestampStr = parts[0] + " " + parts[1]+" "+parts[2];
+	        LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DateTimeFormatter.ofPattern("M/d/yyyy h:mm:ss a", Locale.US));
+
+	        String message = parts[3];
+
+	        // Create and return the LogEntry object
+	        return new LogEntry(timestamp, message);
+	    } catch (Exception e) {
+	        // Error occurred while parsing the log line
+	        // You can handle the exception or log it if needed
+	        e.printStackTrace();
+	        return null; // Return null if unable to parse the log line
+	    }
+	}
+
+	
+	
 
 	private static LocalDateTime getLogEntryTimestamp(LogEntry logEntry) {
 		LocalDateTime timestamp = logEntry.getTimestamp(); 
