@@ -86,7 +86,7 @@ public class LogScanner {
     }
 
     private static void sendEmail(String message) {
-        // Implement email sending logic here
+        // email sending logic
         System.out.println("Sending email: " + message);
     }
 }
