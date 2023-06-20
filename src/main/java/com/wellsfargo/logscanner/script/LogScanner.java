@@ -4,12 +4,19 @@ package com.wellsfargo.logscanner.script;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.List;
 
 public class LogScanner {
     private static final String LOG_FILE_PATH = "/path/to/server.log";
     private static final long SCAN_INTERVAL_MS = 5000; // 5 seconds
     private static final long MAX_SCAN_DURATION_MS = 60000; // 1 minute
-    private static final String SEARCH_KEYWORD = "fail"; // Message to search for in the log file
+    private static List<String> SEARCH_KEYWORDS = Arrays.asList("fail","successfully","error","hung"); // Message to search for in the log file
+    private static String SUCCESSFULLY = "successfully";
+    private static String ERROR = "error";
+
+    private static String HUNG = "hung";
+
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -31,10 +38,23 @@ public class LogScanner {
                             long readFromByte = Math.max(0, fileSize - 1500); // Read the last 1500 bytes from the log file
                             String logContent = readLogContent(logFile, readFromByte);
 
-                            if (logContent.contains(SEARCH_KEYWORD)) {
-                                // Send email to recipients
-                                sendEmail("Log file contains the keyword: " + SEARCH_KEYWORD);
+							/*
+							 * for(String searchKeyWord : SEARCH_KEYWORDS) { if
+							 * (logContent.contains(searchKeyWord)) { // Send email to recipients
+							 * sendEmail("Log file contains the keyword: " + SEARCH_KEYWORD); } }
+							 */
+                            
+                            if(logContent.contains(ERROR)) {
+                            	sendEmail("Started with errors/warnings/exceptions");
                             }
+                            else if(logContent.contains(SUCCESSFULLY)) {
+                            	sendEmail("Started Successfully");
+                            }
+                            else if(logContent.contains(HUNG)) {
+                            	sendEmail("Server went into hung status and not started properly");
+                            }
+                            
+                            
 
                             // Update the start time for the next scan
                             startTime = System.currentTimeMillis();
