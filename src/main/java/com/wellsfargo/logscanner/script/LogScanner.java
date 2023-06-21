@@ -12,7 +12,7 @@ import java.util.List;
 public class LogScanner {
 	private static final String LOG_FILE_PATH = "C:/Balaji/Java/serverlogs/server.log";
 	private static final long SCAN_INTERVAL_MS = 5000; // 5 seconds
-	private static final long MAX_SCAN_DURATION_MS = 120000; // 2 minute
+	private static final long MAX_SCAN_DURATION_MS = 300000; // 5 minute
 	private static final long BYTE_TO_READ = 1024; // BYTES TO READ
 
 	private static List<String> SEARCH_KEYWORDS = Arrays.asList("fail", "successfully", "error", "hung"); // Message to
@@ -42,6 +42,7 @@ public class LogScanner {
 		long endTime = startTime + MAX_SCAN_DURATION_MS;
 
 		while (System.currentTimeMillis() < endTime) {
+			System.out.println("loop starts.. "+System.currentTimeMillis());
 			try {
 				File logFile = new File(LOG_FILE_PATH);
 
@@ -97,6 +98,6 @@ public class LogScanner {
 
 	private static void sendEmail(String message) {
 		// email sending logic
-		System.out.println("Sending email: " + message);
+		System.out.println("Sending email at :"+System.currentTimeMillis()+ ":: "+ message);
 	}
 }
