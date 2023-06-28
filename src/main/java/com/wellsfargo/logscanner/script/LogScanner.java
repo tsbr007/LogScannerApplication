@@ -55,7 +55,7 @@ public class LogScanner {
 						long lastModifiedTime = logFile.lastModified();
 
 						if (lastModifiedTime > startTime) {
-							long readFromByte = Math.max(0, fileSize - BYTE_TO_READ); // Read the last 1500 bytes from
+							long readFromByte = Math.max(0, fileSize - BYTE_TO_READ); // Read the last 1024 bytes from
 																						// the log file
 							String logContent = readLogContent(logFile, readFromByte);
 
